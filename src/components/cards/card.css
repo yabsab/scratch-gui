@@ -183,17 +183,29 @@
     max-width: 200px;
 }
 
-.help-icon, .close-icon {
-    height: 1rem;
-}
-
 .help-icon {
-    margin-right: 0.25rem;
+    height: 1.25rem;
 }
 
 .close-icon {
+    height: 1rem;
+    margin: .125rem 0; /* To offset the .25rem difference in icon size */
+}
+
+[dir="ltr"] .help-icon {
+    margin-right: 0.25rem;
+}
+
+[dir="rtl"] .help-icon {
     margin-left: 0.25rem;
-    transform: rotate(45deg);
+}
+
+[dir="ltr"] .close-icon {
+    margin-left: 0.25rem;
+}
+
+[dir="rtl"] .close-icon {
+    margin-right: 0.25rem;
 }
 
 .see-all {
@@ -220,8 +232,12 @@
     text-align: center;
 }
 
-.see-all-button img {
+[dir="ltr"] .see-all-button img {
     margin-left: 0.5rem;
+}
+
+[dir="rtl"] .see-all-button img {
+    margin-right: 0.5rem;
 }
 
 .video-cover {

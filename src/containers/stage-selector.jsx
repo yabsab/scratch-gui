@@ -2,6 +2,7 @@ import bindAll from 'lodash.bindall';
 import omit from 'lodash.omit';
 import PropTypes from 'prop-types';
 import React from 'react';
+import {intlShape, injectIntl} from 'react-intl';
 
 import {connect} from 'react-redux';
 import {openBackdropLibrary} from '../reducers/modals';
@@ -9,14 +10,23 @@ import {activateTab, COSTUMES_TAB_INDEX} from '../reducers/editor-tab';
 import {setHoveredSprite} from '../reducers/hovered-target';
 import DragConstants from '../lib/drag-constants';
 import DropAreaHOC from '../lib/drop-area-hoc.jsx';
+import {emptyCostume} from '../lib/empty-assets';
+import sharedMessages from '../lib/shared-messages';
+import {fetchCode} from '../lib/backpack-api';
 
 import StageSelectorComponent from '../components/stage-selector/stage-selector.jsx';
 
 import backdropLibraryContent from '../lib/libraries/backdrops.json';
-import costumeLibraryContent from '../lib/libraries/costumes.json';
 import {handleFileUpload, costumeUpload} from '../lib/file-uploader.js';
 
-const dragTypes = [DragConstants.COSTUME, DragConstants.SOUND];
+const dragTypes = [
+    DragConstants.COSTUME,
+    DragConstants.SOUND,
+    DragConstants.BACKPACK_COSTUME,
+    DragConstants.BACKPACK_SOUND,
+    DragConstants.BACKPACK_CODE
+];
+
 const DroppableStage = DropAreaHOC(dragTypes)(StageSelectorComponent);
 
 class StageSelector extends React.Component {
@@ -60,11 +70,7 @@ class StageSelector extends React.Component {
         this.addBackdropFromLibraryItem(item);
     }
     handleEmptyBackdrop () {
-        // @todo this is brittle, will need to be refactored for localized libraries
-        const emptyItem = costumeLibraryContent.find(item => item.name === 'Empty');
-        if (emptyItem) {
-            this.addBackdropFromLibraryItem(emptyItem);
-        }
+        this.handleNewBackdrop(emptyCostume(this.props.intl.formatMessage(sharedMessages.backdrop, {index: 1})));
     }
     handleBackdropUpload (e) {
         const storage = this.props.vm.runtime.storage;
@@ -86,6 +92,21 @@ class StageSelector extends React.Component {
             this.props.vm.shareCostumeToTarget(dragInfo.index, this.props.id);
         } else if (dragInfo.dragType === DragConstants.SOUND) {
             this.props.vm.shareSoundToTarget(dragInfo.index, this.props.id);
+        } else if (dragInfo.dragType === DragConstants.BACKPACK_COSTUME) {
+            this.props.vm.addCostume(dragInfo.payload.body, {
+                name: dragInfo.payload.name
+            }, this.props.id);
+        } else if (dragInfo.dragType === DragConstants.BACKPACK_SOUND) {
+            this.props.vm.addSound({
+                md5: dragInfo.payload.body,
+                name: dragInfo.payload.name
+            }, this.props.id);
+        } else if (dragInfo.dragType === DragConstants.BACKPACK_CODE) {
+            fetchCode(dragInfo.payload.bodyUrl)
+                .then(blocks => {
+                    this.props.vm.shareBlocksToTarget(blocks, this.props.id);
+                    this.props.vm.refreshWorkspace();
+                });
         }
     }
     setFileInput (input) {
@@ -93,7 +114,7 @@ class StageSelector extends React.Component {
     }
     render () {
         const componentProps = omit(this.props, [
-            'assetId', 'dispatchSetHoveredSprite', 'id', 'onActivateTab', 'onSelect']);
+            'asset', 'dispatchSetHoveredSprite', 'id', 'intl', 'onActivateTab', 'onSelect']);
         return (
             <DroppableStage
                 fileInputRef={this.setFileInput}
@@ -113,11 +134,12 @@ class StageSelector extends React.Component {
 StageSelector.propTypes = {
     ...StageSelectorComponent.propTypes,
     id: PropTypes.string,
+    intl: intlShape.isRequired,
     onSelect: PropTypes.func
 };
 
-const mapStateToProps = (state, {assetId, id}) => ({
-    url: assetId && state.scratchGui.vm.runtime.storage.get(assetId).encodeDataURI(),
+const mapStateToProps = (state, {asset, id}) => ({
+    url: asset && asset.encodeDataURI(),
     vm: state.scratchGui.vm,
     receivedBlocks: state.scratchGui.hoveredTarget.receivedBlocks &&
             state.scratchGui.hoveredTarget.sprite === id,
@@ -137,7 +159,7 @@ const mapDispatchToProps = dispatch => ({
     }
 });
 
-export default connect(
+export default injectIntl(connect(
     mapStateToProps,
     mapDispatchToProps
-)(StageSelector);
+)(StageSelector));

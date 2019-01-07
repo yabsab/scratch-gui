@@ -14,6 +14,7 @@ class SeleniumHelper {
             'clickText',
             'clickButton',
             'clickXpath',
+            'elementIsVisible',
             'findByText',
             'findByXpath',
             'getDriver',
@@ -22,6 +23,10 @@ class SeleniumHelper {
             'loadUri',
             'rightClickText'
         ]);
+    }
+
+    elementIsVisible (element) {
+        return this.driver.wait(until.elementIsVisible(element));
     }
 
     get scope () {
@@ -44,6 +49,9 @@ class SeleniumHelper {
             args.push('--headless');
         }
         chromeCapabilities.set('chromeOptions', {args});
+        chromeCapabilities.setLoggingPrefs({
+            performance: 'ALL'
+        });
         this.driver = new webdriver.Builder()
             .forBrowser('chrome')
             .withCapabilities(chromeCapabilities)

@@ -22,7 +22,14 @@
     flex-shrink: 0;
     align-items: center;
     height: $stage-menu-height;
-    padding: $space;
+    padding-top: $space;
+    padding-bottom: $space;
+}
+
+.embed-scratch-logo img {
+    height:  1.6rem;
+    vertical-align: middle;
+    opacity: .6;
 }
 
 .stage-size-row {
@@ -44,7 +51,7 @@
 .stage-button {
     display: block;
     border: 1px solid $ui-black-transparent;
-    border-radius: .25rem;
+    border-radius: $form-radius;
     width: calc(2rem + 2px);
     height: calc(2rem + 2px);
     background: $ui-white;
@@ -56,6 +63,10 @@
 .stage-button-icon {
     width: 100%;
     height: 100%;
+}
+
+[dir="rtl"] .stage-button-icon {
+    transform: scaleX(-1);
 }
 
 [dir="ltr"] .stage-button-first {
